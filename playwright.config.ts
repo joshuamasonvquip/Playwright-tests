@@ -1,4 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
+import { getEnvironment } from './config/environments';
+
+// Get the current environment
+const env = process.env.TEST_ENV || 'dev';
+const environment = getEnvironment();
+
+console.log(`Running tests in ${environment.name} environment`);
+console.log(`Base URL: ${environment.baseUrl}`);
 
 export default defineConfig({
   testDir: './tests',
@@ -9,7 +17,7 @@ export default defineConfig({
   reporter: 'html',
   timeout: 120000, // Increase timeout to 2 minutes for comprehensive testing
   use: {
-    baseURL: 'https://dev-admin.vquiprentals.com',
+    baseURL: environment.baseUrl,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -19,14 +27,5 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
   ],
-
 }); 

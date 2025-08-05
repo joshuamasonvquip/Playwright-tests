@@ -4,15 +4,25 @@
   "description": "Playwright tests for VQuip login flow",
   "scripts": {
     "test": "playwright test",
+    "test:dev": "cross-env TEST_ENV=dev playwright test",
+    "test:stage": "cross-env TEST_ENV=stage playwright test",
     "test:headed": "playwright test --headed",
+    "test:dev:headed": "cross-env TEST_ENV=dev playwright test --headed",
+    "test:stage:headed": "cross-env TEST_ENV=stage playwright test --headed",
     "test:ui": "playwright test --ui",
+    "test:dev:ui": "cross-env TEST_ENV=dev playwright test --ui",
+    "test:stage:ui": "cross-env TEST_ENV=stage playwright test --ui",
     "test:debug": "playwright test --debug",
+    "test:dev:debug": "cross-env TEST_ENV=dev playwright test --debug",
+    "test:stage:debug": "cross-env TEST_ENV=stage playwright test --debug",
+    "run": "node scripts/run-tests.js",
     "install-browsers": "playwright install",
     "report": "playwright show-report"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
     "@types/node": "^20.0.0",
+    "cross-env": "^7.0.3",
     "typescript": "^5.0.0"
   },
   "engines": {
