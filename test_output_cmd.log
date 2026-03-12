@@ -1,0 +1,7 @@
+[dotenv@17.2.3] injecting env (7) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+Running tests in pendo environment
+Base URL: https://pendo.vquiprentals.com
+Error: Project(s) " mobile-web" not found. Available projects: "chromium", "mobile-web"
+    at filterProjects (C:\Users\jmason\Desktop\Playwright-tests\node_modules\playwright\lib\runner\projectUtils.js:79:11)
+    at runTests (C:\Users\jmason\Desktop\Playwright-tests\node_modules\playwright\lib\program.js:175:42)
+    at i.<anonymous> (C:\Users\jmason\Desktop\Playwright-tests\node_modules\playwright\lib\program.js:65:7)

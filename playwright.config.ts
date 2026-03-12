@@ -21,11 +21,20 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    ignoreHTTPSErrors: true, // Ignore SSL certificate errors in dev environments
   },
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'mobile-web',
+      use: {
+        ...devices['iPhone 13'],
+        browserName: 'chromium',
+        channel: 'chrome',
+      },
     },
   ],
 }); 

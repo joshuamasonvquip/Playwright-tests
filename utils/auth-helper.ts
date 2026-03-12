@@ -49,36 +49,46 @@ export class AuthHelper {
   private async loginAsBusinessOrEmployee(userType: 'business' | 'employee', credentials: { companyId: string; username: string; password: string }) {
     // Step 1: Navigate to the welcome page
     await this.page.goto(this.env.authUrl);
+    const landingPath = this.env.employeeLandingPath || '/secure/scheduler';
+    if (this.page.url().includes(landingPath)) {
+      console.log(`Already logged in as ${userType} user in ${this.env.name} environment`);
+      return;
+    }
     await expect(this.page).toHaveURL(this.env.authUrl);
     
     // Step 2: Enter Company ID
-    const companyIdInput = this.page.locator('#companyId');
-    await companyIdInput.waitFor({ state: 'visible' });
+    const companyIdInput = this.page.getByRole('textbox', { name: 'Company ID' })
+      .or(this.page.locator('#companyId'));
+    await companyIdInput.waitFor({ state: 'visible', timeout: 15000 });
     await companyIdInput.fill(credentials.companyId);
     
-    // Step 3: Click Continue
-    const continueButton = this.page.locator('button:has-text("Continue")');
-    await continueButton.waitFor({ state: 'visible' });
-    await continueButton.click();
+    // Step 3: Click Continue if present
+    const continueButton = this.page.getByRole('button', { name: /Continue/i });
+    if (await continueButton.count()) {
+      await continueButton.click();
+    }
     
     // Step 4: Enter Username
-    const usernameInput = this.page.locator('#username');
-    await usernameInput.waitFor({ state: 'visible' });
+    const usernameInput = this.page.getByRole('textbox', { name: 'Username' })
+      .or(this.page.locator('#username'));
+    await usernameInput.waitFor({ state: 'visible', timeout: 15000 });
     await usernameInput.fill(credentials.username);
     
     // Step 5: Enter Password
-    const passwordInput = this.page.locator('#password');
-    await passwordInput.waitFor({ state: 'visible' });
+    const passwordInput = this.page.getByLabel(/Password/i)
+      .or(this.page.locator('input[type="password"]'))
+      .or(this.page.locator('#password'));
+    await passwordInput.waitFor({ state: 'visible', timeout: 15000 });
     await passwordInput.fill(credentials.password);
     
     // Step 6: Click Sign In
-    const signInButton = this.page.locator('button:has-text("Sign in")');
+    const signInButton = this.page.getByRole('button', { name: /Sign in|Login/i });
     await signInButton.waitFor({ state: 'visible' });
     await signInButton.click();
     
-    // Step 7: Verify Redirection to scheduler
-    await this.page.waitForURL('**/secure/scheduler', { timeout: 10000 });
-    await expect(this.page).toHaveURL(`${this.env.baseUrl}/secure/scheduler`);
+    // Step 7: Verify redirection to expected landing page
+    await this.page.waitForURL(`**${landingPath}`, { timeout: 20000 });
+    await expect(this.page).toHaveURL(`${this.env.baseUrl}${landingPath}`);
     
     console.log(`Successfully logged in as ${userType} user in ${this.env.name} environment`);
   }

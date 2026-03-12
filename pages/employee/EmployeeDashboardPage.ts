@@ -5,7 +5,7 @@ export class EmployeeDashboardPage extends BasePage {
   // Navigation elements - Updated based on actual page structure
   private readonly bookingsTitle: Locator;
   private readonly addReservationButton: Locator;
-  
+
   // User menu elements - Updated based on actual page structure
   private readonly userMenuButton: Locator;
   private readonly logoutButton: Locator;
@@ -19,7 +19,7 @@ export class EmployeeDashboardPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     // Initialize navigation locators - Updated based on actual page structure
     this.bookingsTitle = page.locator('h3:has-text("Bookings")');
     this.addReservationButton = page.locator('button:has-text("Add Reservation")');
@@ -146,7 +146,7 @@ export class EmployeeDashboardPage extends BasePage {
     const stats = {};
     const statElements = this.page.locator('[data-testid="quick-stats"] .stat-item, .quick-stats .stat-item');
     const count = await statElements.count();
-    
+
     for (let i = 0; i < count; i++) {
       const statElement = statElements.nth(i);
       const label = await statElement.locator('.stat-label').textContent();
@@ -155,7 +155,7 @@ export class EmployeeDashboardPage extends BasePage {
         stats[label.trim()] = value.trim();
       }
     }
-    
+
     return stats;
   }
 
@@ -236,5 +236,88 @@ export class EmployeeDashboardPage extends BasePage {
     await this.waitForElement(this.bookingsTitle);
     await this.waitForElement(this.addReservationButton);
     await this.page.waitForTimeout(2000); // Additional wait for any dynamic content
+  }
+
+  /**
+   * Open the first reservation marked Ready To Check-In
+   */
+  async openFirstReadyToCheckInReservation() {
+    const readyToCheckIn = this.page.getByText('Ready To Check-In').first();
+    await this.waitForElement(readyToCheckIn);
+    await readyToCheckIn.click();
+  }
+
+  /**
+   * Start the check-in flow from the reservation modal
+   */
+  async startCheckInFromModal() {
+    const checkInButton = this.page.getByRole('button', { name: /Check-In Rental/i });
+    await this.waitForElement(checkInButton);
+    await checkInButton.click();
+  }
+
+  /**
+   * Assign the first available employee and confirm
+   */
+  async assignFirstEmployeeAndConfirm() {
+    // Use the same robust fallback chain as employee-reservation-create-and-launch.spec.ts
+    // to avoid strict mode violations with ion-select + its shadow button
+    const selectEmployeeIon = this.page.locator('ion-select[formcontrolname="assignedEmployeeId"]').first();
+    const selectEmployeeHidden = this.page.locator('#ion-sel-0').first();
+    const selectEmployeeFallback = this.page.getByRole('button', { name: /Select Employee/i }).first();
+    const selectEmployeeField = (await selectEmployeeIon.count())
+      ? selectEmployeeIon
+      : (await selectEmployeeHidden.count())
+        ? selectEmployeeHidden
+        : selectEmployeeFallback;
+    await this.waitForElementEnabled(selectEmployeeField);
+    await selectEmployeeField.click({ force: true });
+
+    const firstEmployeeOption = this.page.getByRole('radiogroup').getByRole('radio').first()
+      .or(this.page.locator('ion-radio[role="radio"]').first());
+    await firstEmployeeOption.click({ force: true });
+
+    const confirmButton = this.page.getByRole('button', { name: 'Confirm' });
+    await this.waitForElementEnabled(confirmButton);
+    await confirmButton.click();
+  }
+
+  /**
+   * Verify guest list screen is visible
+   */
+  async verifyGuestListLoaded() {
+    const guestListTitle = this.page.getByText('Guest List');
+    await this.waitForElement(guestListTitle);
+  }
+
+  /**
+   * Navigate to check-in dashboard from guest list
+   */
+  async openCheckInDashboard() {
+    const dashboardButton = this.page.getByRole('button', { name: /Dashboard/i });
+    await this.waitForElement(dashboardButton);
+    await dashboardButton.click();
+  }
+
+  /**
+   * Complete check-in from the dashboard
+   */
+  async completeCheckIn() {
+    const checkInButton = this.page.getByRole('button', { name: /^Check In$/i });
+    await this.waitForElement(checkInButton);
+    await checkInButton.click();
+
+    const confirmButton = this.page.getByRole('button', { name: 'Confirm' });
+    await this.waitForElement(confirmButton);
+    await confirmButton.click();
+  }
+
+  /**
+   * Return to schedule from check-in dashboard
+   */
+  async returnToSchedule() {
+    const scheduleButton = this.page.getByRole('button', { name: /Schedule/i });
+    await this.waitForElement(scheduleButton);
+    await scheduleButton.click();
   }
 } 

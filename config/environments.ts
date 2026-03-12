@@ -1,8 +1,13 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 export interface EnvironmentConfig {
   name: string;
   baseUrl: string;
   authUrl: string;
   adminAuthUrl: string;
+  employeeLandingPath?: string;
   credentials: {
     business: {
       companyId: string;
@@ -65,7 +70,31 @@ export const environments: Record<string, EnvironmentConfig> = {
         password: 'Password1!'
       }
     }
+  },
+  mobile: {
+    name: 'pendo',
+    baseUrl: 'https://pendo.vquiprentals.com',
+    authUrl: 'https://pendo.vquiprentals.com/auth/login',
+    adminAuthUrl: 'https://pendo.vquiprentals.com/auth/login',
+    employeeLandingPath: '/app/tabs/schedule',
+    credentials: {
+      business: {
+        companyId: process.env.COMPANY_ID || '',
+        username: process.env.BA_USERNAME || '',
+        password: process.env.BA_PASSWORD || ''
+      },
+      employee: {
+        companyId: process.env.COMPANY_ID || '',
+        username: process.env.E_USERNAME || '',
+        password: process.env.E_PASSWORD || ''
+      },
+      admin: {
+        username: process.env.VA_USERNAME || '',
+        password: process.env.VA_PASSWORD || ''
+      }
+    }
   }
+
 };
 
 export function getEnvironment(): EnvironmentConfig {
@@ -74,6 +103,14 @@ export function getEnvironment(): EnvironmentConfig {
   
   if (!config) {
     throw new Error(`Environment '${env}' not found. Available environments: ${Object.keys(environments).join(', ')}`);
+  }
+
+  if (env === 'mobile') {
+    const requiredKeys = ['COMPANY_ID', 'E_USERNAME', 'E_PASSWORD'];
+    const missingKeys = requiredKeys.filter((key) => !process.env[key]);
+    if (missingKeys.length > 0) {
+      throw new Error(`Missing required environment variables for mobile: ${missingKeys.join(', ')}`);
+    }
   }
   
   return config;
