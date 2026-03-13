@@ -30,31 +30,36 @@ npx playwright install
 ### 3. Environment configuration
 
 - **Dev and Stage**: Use the built-in config in `config/environments.ts`. No extra setup.
-- **Mobile (Pendo)**: Used by the employee reservation create-and-launch test. Create a `.env` file in the project root with:
+- **Mobile (Pendo)**: Used by the employee reservation create-and-launch test. Create a `.env` file in the project root with your own credentials.
+
+**Getting test credentials:** Create an employee in **VQuip Admin** for the **VOID** company (**245**) in the **dev** environment. Use that employee’s **username** (not email) and password in `.env` so you never store real or shared passwords in the repo.
+
+1. **Log in to VQuip Admin (dev):** [https://dev-admin.vquiprentals.com/auth/v2/vquipadmin/login](https://dev-admin.vquiprentals.com/auth/v2/vquipadmin/login)
+2. **Open VOID and assume the account:** On the Company List, search for “void”, find **VOID**, open the **Actions** menu, and choose **Assume Account** so you’re acting as that company.
+3. **Create an employee:** Go to **Settings** → **Employees**. Click **+ Create User** and create an employee. Set a **Username** and password you’ll use only for testing. The test uses the employee **username** (and password), not the email—see the Username column in the employee table.
+4. Optionally create or use a business admin user for the same company if your tests need it.
+
+![Company List: search for VOID, then Actions → Assume Account](docs/setup-1-company-list-assume-account.png)
+
+*Step 2: Find VOID on the Company List and use Actions → Assume Account.*
+
+![Settings → Employees: Create User and note the Username column](docs/setup-2-employee-management-username.png)
+
+*Step 3: Settings → Employees. Use “+ Create User” and use the employee’s **Username** (not email) for `E_USERNAME` in `.env`.*
+
+Then create a `.env` file in the project root with the variable names and your own values:
 
 ```env
-COMPANY_ID=your-company-id
+COMPANY_ID=245-dev
 BA_USERNAME=your-business-admin-username
 BA_PASSWORD=your-business-admin-password
 VA_USERNAME=your-vquip-admin-username
 VA_PASSWORD=your-vquip-admin-password
-E_USERNAME=your-employee-email
+E_USERNAME=your-employee-username
 E_PASSWORD=your-employee-password
 ```
 
-**Example** (test company credentials; not admin):
-
-```env
-COMPANY_ID=245-dev
-BA_USERNAME=admin
-BA_PASSWORD=Void123!
-VA_USERNAME=
-VA_PASSWORD=
-E_USERNAME=the@void.com
-E_PASSWORD=Void123!
-```
-
-The `mobile` environment reads these variables; see `config/environments.ts` for the exact keys. **Do not commit `.env`** (it is in `.gitignore`).
+Use the **username** (not email) of the employee you created for `E_USERNAME`, and their password for `E_PASSWORD`. Leave `VA_USERNAME` and `VA_PASSWORD` blank if you don’t need VQuip admin. See `config/environments.ts` for the exact variable names. **Do not commit `.env`** (it is in `.gitignore`).
 
 ### 4. License photo (employee reservation test)
 
