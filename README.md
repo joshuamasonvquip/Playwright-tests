@@ -72,8 +72,14 @@ The spec uses a hardcoded path. If your project path differs, update `LICENSE_PH
 
 The main test to run is the **employee reservation create-and-launch** flow against the **mobile (Pendo)** environment with a visible browser. After setup (dependencies, browsers, `.env`, license photo), use:
 
-```bash
+**Windows (PowerShell):**
+```powershell
 npx cross-env TEST_ENV=mobile playwright test --headed --project="mobile-web" tests/Employee/employee-reservation-create-and-launch.spec.ts
+```
+
+**Mac / Linux:**
+```bash
+TEST_ENV=mobile npx playwright test --headed --project="mobile-web" tests/Employee/employee-reservation-create-and-launch.spec.ts
 ```
 
 This runs the E2E flow on the mobile-web project so you can watch it in the browser.
@@ -96,13 +102,17 @@ npm run test:dev
 npm run test:stage
 
 # Mobile / Pendo (uses .env credentials)
-cross-env TEST_ENV=mobile npm test
+# Windows: use cross-env (see below); Mac/Linux: TEST_ENV=mobile npm test
 ```
 
-On Windows PowerShell:
-
+**Windows (PowerShell):**
 ```powershell
 $env:TEST_ENV="mobile"; npm test
+```
+
+**Mac / Linux:**
+```bash
+TEST_ENV=mobile npm test
 ```
 
 ### Employee reservation create-and-launch (single spec)
@@ -117,9 +127,8 @@ npm run test:dev -- tests/Employee/employee-reservation-create-and-launch.spec.t
 
 **Against mobile/Pendo** (uses `.env`):
 
-```bash
-cross-env TEST_ENV=mobile npm test -- tests/Employee/employee-reservation-create-and-launch.spec.ts
-```
+- **Windows (PowerShell):** `npx cross-env TEST_ENV=mobile npm test -- tests/Employee/employee-reservation-create-and-launch.spec.ts`
+- **Mac / Linux:** `TEST_ENV=mobile npm test -- tests/Employee/employee-reservation-create-and-launch.spec.ts`
 
 ### Other run options
 
@@ -137,14 +146,18 @@ npm run test:debug
 
 ### Using `TEST_ENV` directly
 
-```bash
-# Windows PowerShell
+**Windows (PowerShell):**
+```powershell
 $env:TEST_ENV="stage"; npm test
+```
 
-# Windows Command Prompt
+**Windows (Command Prompt):**
+```cmd
 set TEST_ENV=stage && npm test
+```
 
-# Linux / Mac
+**Mac / Linux:**
+```bash
 TEST_ENV=stage npm test
 ```
 
@@ -220,7 +233,7 @@ npm run report
 ### "Environment 'xyz' not found"
 
 - Ensure the environment is defined in `config/environments.ts`.
-- When using mobile, set `TEST_ENV=mobile` (e.g. `$env:TEST_ENV="mobile"` in PowerShell).
+- When using mobile, set `TEST_ENV=mobile` (PowerShell: `$env:TEST_ENV="mobile"`; Mac/Linux: `TEST_ENV=mobile` before the command).
 
 ### Mobile: "Missing required environment variables"
 
