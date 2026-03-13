@@ -91,6 +91,8 @@ This runs the E2E flow on the mobile-web project so you can watch it in the brow
 
 > **Note:** The test currently proceeds through insurance being purchased; it does not yet complete the full launch of the reservation. The goal is to extend it to cover launching the reservation (and end-rental) as well.
 
+**Example (video):** A screen recording of the test running—check-in and insurance purchase—is in the repo: [docs/reservationLaunch.mp4](docs/reservationLaunch.mp4). Open or download it to see the flow.
+
 ### All tests (default = dev)
 
 ```bash
