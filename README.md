@@ -1,67 +1,141 @@
 # VQuip Playwright Tests
 
-This repository contains automated tests for the VQuip application using Playwright. The tests are designed to be reusable across different environments (dev, stage, etc.) with configurable URLs and login credentials.
+Automated tests for the VQuip application using Playwright. Tests support multiple environments (dev, stage, mobile/Pendo) with configurable URLs and credentials. The **recommended primary test** is **employee reservation create-and-launch**: a full E2E flow (create reservation → check-in → guest registration → insurance/payment → launch → end-rental) on the Pendo mobile web app.
 
-## Environment Configuration
+## Prerequisites
 
-The tests support multiple environments with different URLs and login credentials. The environment configuration is centralized in `config/environments.ts`.
+- **Node.js** 18 or higher
+- **npm** (comes with Node)
 
-### Available Environments
+## Setup
 
-- **Development (dev)**: `https://dev-admin.vquiprentals.com`
-- **Staging (stage)**: `https://stage-admin.vquiprentals.com`
-
-### User Types
-
-The tests support three different user types:
-
-1. **Business Users**: Regular business account users
-2. **Admin Users**: Administrative users with elevated privileges
-3. **Employee Users**: Employee account users
-
-## Running Tests
-
-### Default Environment (Development)
+### 1. Install dependencies
 
 ```bash
-# Run all tests in development environment
+npm install
+```
+
+### 2. Install Playwright browsers
+
+```bash
+npm run install-browsers
+```
+
+Or:
+
+```bash
+npx playwright install
+```
+
+### 3. Environment configuration
+
+- **Dev and Stage**: Use the built-in config in `config/environments.ts`. No extra setup.
+- **Mobile (Pendo)**: Used by the employee reservation create-and-launch test. Create a `.env` file in the project root with:
+
+```env
+COMPANY_ID=your-company-id
+BA_USERNAME=your-business-admin-username
+BA_PASSWORD=your-business-admin-password
+VA_USERNAME=your-vquip-admin-username
+VA_PASSWORD=your-vquip-admin-password
+E_USERNAME=your-employee-email
+E_PASSWORD=your-employee-password
+```
+
+**Example** (test company credentials; not admin):
+
+```env
+COMPANY_ID=245-dev
+BA_USERNAME=admin
+BA_PASSWORD=Void123!
+VA_USERNAME=
+VA_PASSWORD=
+E_USERNAME=the@void.com
+E_PASSWORD=Void123!
+```
+
+The `mobile` environment reads these variables; see `config/environments.ts` for the exact keys. **Do not commit `.env`** (it is in `.gitignore`).
+
+### 4. License photo (employee reservation test)
+
+The employee reservation create-and-launch test uploads a driver’s license image. Ensure this file exists:
+
+- **Path**: `tests/photos/agentWorkforce.jpg`
+
+The spec uses a hardcoded path. If your project path differs, update `LICENSE_PHOTO_PATH` at the top of `tests/Employee/employee-reservation-create-and-launch.spec.ts`.
+
+---
+
+## Running tests
+
+### Recommended: primary test
+
+The main test to run is the **employee reservation create-and-launch** flow against the **mobile (Pendo)** environment with a visible browser. After setup (dependencies, browsers, `.env`, license photo), use:
+
+```bash
+npx cross-env TEST_ENV=mobile playwright test --headed --project="mobile-web" tests/Employee/employee-reservation-create-and-launch.spec.ts
+```
+
+This runs the E2E flow on the mobile-web project so you can watch it in the browser.
+
+> **Note:** The test currently proceeds through insurance being purchased; it does not yet complete the full launch of the reservation. The goal is to extend it to cover launching the reservation (and end-rental) as well.
+
+### All tests (default = dev)
+
+```bash
 npm test
+```
 
-# Run tests with headed browser
+### By environment
+
+```bash
+# Development (default)
+npm run test:dev
+
+# Staging
+npm run test:stage
+
+# Mobile / Pendo (uses .env credentials)
+cross-env TEST_ENV=mobile npm test
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:TEST_ENV="mobile"; npm test
+```
+
+### Employee reservation create-and-launch (single spec)
+
+This is the full Pendo flow: create reservation → check-in → guest form (including license upload) → insurance/payment → launch (signatures) → end rental (rate us, review, etc.).
+
+**Against dev/stage** (uses credentials from `config/environments.ts`):
+
+```bash
+npm run test:dev -- tests/Employee/employee-reservation-create-and-launch.spec.ts
+```
+
+**Against mobile/Pendo** (uses `.env`):
+
+```bash
+cross-env TEST_ENV=mobile npm test -- tests/Employee/employee-reservation-create-and-launch.spec.ts
+```
+
+### Other run options
+
+```bash
+# Headed (see the browser)
 npm run test:headed
+npm run test:dev:headed -- tests/Employee/employee-reservation-create-and-launch.spec.ts
 
-# Run tests with UI mode
+# UI mode
 npm run test:ui
 
-# Run tests in debug mode
+# Debug
 npm run test:debug
 ```
 
-### Specific Environment
-
-```bash
-# Run tests in development environment
-npm run test:dev
-
-# Run tests in staging environment
-npm run test:stage
-
-# Run tests with headed browser in specific environment
-npm run test:dev:headed
-npm run test:stage:headed
-
-# Run tests with UI mode in specific environment
-npm run test:dev:ui
-npm run test:stage:ui
-
-# Run tests in debug mode in specific environment
-npm run test:dev:debug
-npm run test:stage:debug
-```
-
-### Using Environment Variables
-
-You can also set the environment using the `TEST_ENV` environment variable:
+### Using `TEST_ENV` directly
 
 ```bash
 # Windows PowerShell
@@ -70,145 +144,110 @@ $env:TEST_ENV="stage"; npm test
 # Windows Command Prompt
 set TEST_ENV=stage && npm test
 
-# Linux/Mac
+# Linux / Mac
 TEST_ENV=stage npm test
 ```
 
-## Test Structure
+---
 
-### Test Files
+## Test structure
 
-- `tests/Business/` - Business user tests
-  - `business-login.spec.ts` - Business login flow
-  - `business-reservation-flow.spec.ts` - Business reservation creation and registration
-- `tests/Admin/` - Admin user tests
-  - `admin-login.spec.ts` - Admin login flow
-- `tests/Employee/` - Employee user tests
-  - `employee-login.spec.ts` - Employee login flow
-  - `employee-reservation-flow.spec.ts` - Employee reservation creation
+### Test files
 
-### Configuration Files
+| Directory       | File                                      | Description |
+|----------------|-------------------------------------------|-------------|
+| `tests/Business/` | `business-login.spec.ts`                   | Business login |
+| | `business-reservation-flow.spec.ts`       | Business reservation creation and registration |
+| `tests/Admin/`    | `admin-login.spec.ts`                     | Admin login |
+| `tests/Employee/` | `employee-login.spec.ts`                  | Employee login |
+| | `employee-reservation-create-and-launch.spec.ts` | **Pendo E2E**: create reservation, check-in, guest form, license upload, insurance, launch, end rental |
+| | `employee-reservation-flow.spec.ts`       | Employee reservation flow |
+| | `employee-launch-flow.spec.ts`            | Employee launch flow |
+| | `employee-pom-tests.spec.ts`               | Employee POM tests |
+| | `mobile-end-to-end-rental-flow.spec.ts`   | Mobile end-to-end rental |
+| `tests/Auth/`     | `login-validation.spec.ts`, `forgot-password.spec.ts` | Auth flows |
+| `tests/QAFlow/`   | `qa-flow.spec.ts`                         | QA flow |
+| `tests/VQuipLens/`| Various `lens-*.spec.ts`                  | VQuip Lens flows |
 
-- `config/environments.ts` - Environment configuration with URLs and credentials
-- `utils/auth-helper.ts` - Reusable authentication helper class
-- `playwright.config.ts` - Playwright configuration
+### Configuration
 
-## Authentication Helper
+- **`config/environments.ts`** – Environment config (URLs and credentials for dev, stage, mobile).
+- **`utils/auth-helper.ts`** – `AuthHelper` for business, admin, and employee login.
+- **`playwright.config.ts`** – Playwright config; `baseURL` comes from the selected environment.
 
-The `AuthHelper` class provides a reusable way to handle login flows for different user types:
+---
+
+## Authentication helper
+
+Use `AuthHelper` for login in tests:
 
 ```typescript
 import { AuthHelper } from '../../utils/auth-helper';
 
 const authHelper = new AuthHelper(page);
 
-// Login as different user types
 await authHelper.login('business');
 await authHelper.login('admin');
 await authHelper.login('employee');
 ```
 
-## Adding New Environments
+---
 
-To add a new environment, update the `environments` object in `config/environments.ts`:
+## Environments reference
 
-```typescript
-export const environments: Record<string, EnvironmentConfig> = {
-  dev: {
-    name: 'Development',
-    baseUrl: 'https://dev-admin.vquiprentals.com',
-    authUrl: 'https://dev-admin.vquiprentals.com/auth/v2/welcome',
-    adminAuthUrl: 'https://dev-admin.vquiprentals.com/auth/v2/vquipadmin/login',
-    credentials: {
-      business: {
-        companyId: '318',
-        username: 'business',
-        password: 'Password1!'
-      },
-      admin: {
-        username: 'pwtest',
-        password: 'PWtest1!'
-      },
-      employee: {
-        companyId: '318',
-        username: 'employee',
-        password: 'Password1!'
-      }
-    }
-  },
-  // Add your new environment here
-  prod: {
-    name: 'Production',
-    baseUrl: 'https://admin.vquiprentals.com',
-    authUrl: 'https://admin.vquiprentals.com/auth/v2/welcome',
-    adminAuthUrl: 'https://admin.vquiprentals.com/auth/v2/vquipadmin/login',
-    credentials: {
-      // Add production credentials
-    }
-  }
-};
-```
+| Environment | Base URL / use |
+|-------------|-----------------|
+| **dev**    | `https://dev-admin.vquiprentals.com` (default) |
+| **stage**  | `https://stage-admin.vquiprentals.com` |
+| **mobile** | `https://pendo.vquiprentals.com` – uses `.env` for credentials |
 
-Then add the corresponding npm scripts in `package.json`:
+To add or change environments or credentials, edit `config/environments.ts`. For a new environment, add an npm script in `package.json` if desired (e.g. `test:prod` with `TEST_ENV=prod`).
 
-```json
-{
-  "scripts": {
-    "test:prod": "TEST_ENV=prod playwright test",
-    "test:prod:headed": "TEST_ENV=prod playwright test --headed"
-  }
-}
-```
+---
 
-## Updating Credentials
+## Reports
 
-To update credentials for an environment, modify the `credentials` object in `config/environments.ts`. The credentials are organized by user type:
-
-- `business` - Company ID, username, and password for business users
-- `admin` - Username and password for admin users (no company ID required)
-- `employee` - Company ID, username, and password for employee users
-
-## Test Reports
-
-After running tests, you can view the HTML report:
+After a run, open the HTML report:
 
 ```bash
 npm run report
 ```
 
-This will open the Playwright HTML report in your browser, showing test results, screenshots, and videos.
+---
 
 ## Troubleshooting
 
-### Environment Not Found Error
+### "Environment 'xyz' not found"
 
-If you get an error like "Environment 'xyz' not found", make sure:
+- Ensure the environment is defined in `config/environments.ts`.
+- When using mobile, set `TEST_ENV=mobile` (e.g. `$env:TEST_ENV="mobile"` in PowerShell).
 
-1. The environment name is correctly spelled in your npm script
-2. The environment is defined in `config/environments.ts`
-3. You're using the correct environment variable name (`TEST_ENV`)
+### Mobile: "Missing required environment variables"
 
-### Login Failures
+- Create a `.env` file with at least `COMPANY_ID`, `E_USERNAME`, and `E_PASSWORD` (and any other keys your run needs).
+- Ensure no typos in variable names (see `config/environments.ts`).
 
-If login tests are failing:
+### Login failures
 
-1. Verify the credentials in `config/environments.ts` are correct
-2. Check that the URLs are accessible
-3. Ensure the login flow hasn't changed (check selectors in `utils/auth-helper.ts`)
+- Check credentials in `config/environments.ts` (dev/stage) or `.env` (mobile).
+- Confirm the target URL is reachable and the app is deployed.
 
-### URL Issues
+### License upload / file not found in employee reservation test
 
-If tests are failing due to URL issues:
+- Ensure `tests/photos/agentWorkforce.jpg` exists.
+- If your path is different, set `LICENSE_PHOTO_PATH` in `tests/Employee/employee-reservation-create-and-launch.spec.ts`.
 
-1. Verify the `baseUrl` and `authUrl` in your environment configuration
-2. Check that the URLs are accessible from your network
-3. Ensure the application is deployed and running in the target environment
+### Flaky UI (modals, buttons)
+
+- The employee reservation spec includes waits for Ionic modals and animations. If selectors or timing change in the app, update the spec (e.g. `waitForIonicIdle`, consent/backdrop waits).
+
+---
 
 ## Contributing
 
-When adding new tests:
+When adding or changing tests:
 
-1. Use the `AuthHelper` class for authentication
-2. Use relative URLs (starting with `/`) instead of absolute URLs
-3. Update the environment configuration if new credentials or URLs are needed
-4. Add appropriate npm scripts for new environments if needed 
+1. Use `AuthHelper` for login where applicable.
+2. Use relative URLs (e.g. `/reservation/create/product`) so they work with any `baseURL`.
+3. Update `config/environments.ts` (or `.env` usage) if new credentials or URLs are needed.
+4. For new environments, add npm scripts in `package.json` if you want a dedicated `test:<env>` command.

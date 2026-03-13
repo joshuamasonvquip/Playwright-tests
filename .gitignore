@@ -28,3 +28,13 @@ dist/
 # Logs
 *.log
 npm-debug.log*
+final_*
+test_output*
+test_results*.json
+
+# Debug / temp
+.cursor/
+.playwright-mcp/
+*debug*.png
+*-check.png
+generate_test_prompt.md
